@@ -31,8 +31,26 @@ reserved = {
    'print' : 'PRINT'
 }
 
-tokens = ["ID"] + list(reserved.values())
+tokens = ["ID", "INT", "FLOAT", "EQUAL", "PLUS", "MINUS", "MULT", "DIV", 
+        "EXP", "LPAR", "RPAR", "LBRA", "RBRA", "SEMI"] + list(reserved.values())
 
+# token specification
+t_INT = '0|[1-9][0-9]*'
+t_FLOAT = '(0|[1-9][0-9]*).[0-9]*[1-9]'
+t_EQUAL = '='
+t_PLUS = '\+'
+t_MINUS = '-'
+t_MULT = '\*'
+t_DIV = '/'
+t_EXP = '\^'
+t_LPAR = '\('
+t_RPAR = '\)'
+t_LBRA = '{'
+t_RBRA = '}'
+t_SEMI = ';'
+t_ignore = ' '
+
+# token actions
 def t_ID(t):
     "[a-zA-Z]+"
     t.type = reserved.get(t.value, 'ID')
@@ -49,6 +67,15 @@ def t_newline(t):
     t.lexer.lineno += 1
 
 lexer = lex.lex()
+
+#lexer.input("{haha = (3.1 / 2) ;} print(haha) ;")
+
+#while True:
+#    tok = lexer.token()
+#    if not tok:
+#        break
+#    print(tok)
+
 import ply.yacc as yacc
 
 # Global variables I suggest you use (although you are not required)
@@ -63,8 +90,30 @@ def p_error(p):
         print("Syntax error in input")
     raise ParsingException()
 
+# production rules
 # You must implement all the production rules. Please review slides
 # from Oct. 4 if you need a reference.
+def p_statements_braces(p):
+    "statements : lbra statements rbra"
+
+def p_statements_recursive(p):
+    "statements : statement SEMI statements"
+
+def p_statements_empty(p):
+    "statements :"
+
+def p_lbra(p):
+    "lbra : LBRA"
+
+def p_rbra(p):
+    "rbra : RBRA"
+    
+def p_statement_print(p):
+    "statement : PRINT LPAR ID RPAR"
+
+def p_statement_assignment(p):
+    "statement : ID EQUAL EXPR"
+
 
 parser = yacc.yacc(debug=True)
 
@@ -75,7 +124,12 @@ def parse_string(s):
     to_print = []
     parser.parse(s)
     return to_print
-    
+
+result = parser.parse("""
+5 + 3;
+""")
+print(result)
+
 # Example on how to test locally in this file:
 #parser.parse("""
 #x = 5 + 4 * 5;
@@ -83,9 +137,9 @@ def parse_string(s):
 #print(i);
 #{
 #  l = 5 ^ x;
-#{
-#    k = 5 + 7;
-#}
+#    {
+#        k = 5 + 7;
+#    }
 #}
 #q = x / i;
 #print(q);
