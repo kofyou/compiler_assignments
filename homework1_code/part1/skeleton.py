@@ -11,19 +11,30 @@ class ParsingException(Exception):
 class SymbolTable:
 
     def __init__(self):
-        pass
+        self.dics = [{}]
     
+    # check re-declaration
     def insert(self, name, value):
-        pass
+        if name in self.dics[-1]:
+            #handle
+            print("redeclaration")
+            exit
+        else:
+            self.dics[-1][name] = value
 
+    # in case of 
     def lookup(self, name):
-        pass
-    
+        for dic in reversed(self.dics):
+            if name in dic:
+                return dic[name]
+        return None
+
     def push_scope(self):
-        pass
+        self.dics.append({})
 
     def pop_scope(self):
-        pass
+        if len(self.dics) > 1:
+            self.dics.pop()
 
 # I have provided you with the token rule to get ids and to get PRINT
 # you must provide all other tokens
@@ -126,11 +137,10 @@ def p_statement_print(p):
     "statement : PRINT LPAR ID RPAR"
     to_print.append(ST.lookup(p[3]))
 
-# assignment declares new variable; check re-declaration
+# assignment declares new variable
 def p_statement_assignment(p):
     "statement : ID EQUAL expr"
-    if (ST.insert(p[1], p[3]) == False):
-        #handle
+    ST.insert(p[1], p[3])
 
 # following are rules encoded with precedence and associativity 
 def p_expr(p):
@@ -139,12 +149,12 @@ def p_expr(p):
         | expr MINUS term
         | term
     """
-    if (p[2] == '+'):
-        p[0] = p[1] + p[3]
-    elif (p[2] == '-'):
-        p[0] = p[1] - p[3]
-    elif (len(p) == 2):
+    if len(p) == 2:
         p[0] = p[1]
+    elif p[2] == '+':
+        p[0] = p[1] + p[3]
+    elif p[2] == '-':
+        p[0] = p[1] - p[3]
 
 # check divides by zero
 def p_term(p):
@@ -153,34 +163,37 @@ def p_term(p):
         | term DIV pow
         | pow
     """
-    if (p[2] == '*'):
-        p[0] = p[1] * p[3]
-    elif (p[2] == '/'):
-        if (p[3] == 0)
-            #handle
-        p[0] = p[1] / p[3]
-    elif (len(p) == 2):
+    if len(p) == 2:
         p[0] = p[1]
+    elif p[2] == '*':
+        p[0] = p[1] * p[3]
+    elif p[2] == '/':
+        if p[3] == 0:
+            #handle
+            print("divided by zero")
+            exit
+        else:
+            p[0] = p[1] / p[3]
 
 def p_pow(p):
     """
     pow : factor CARROT pow
         | factor
     """
-    if (p[2] == '^'):
-        p[0] = p[1] ^ p[3]
-    elif (len(p) == 2):
+    if len(p) == 2:
         p[0] = p[1]
+    elif p[2] == '^':
+        p[0] = p[1] ^ p[3]
 
 def p_factor(p):
     """
     factor : LPAR expr RPAR
         | num
     """
-    if (p[1] == '('):
-        p[0] = p[2]
-    elif (len(p) == 2):
+    if len(p) == 2:
         p[0] = p[1]
+    elif p[1] == '(':
+        p[0] = p[2]
 
 def p_num_int(p):
     "num : INT"
@@ -196,6 +209,8 @@ def p_num_id(p):
     val = ST.lookup(p[1])
     if not val:
         #handle
+        print("usage without declaration")
+        exit
     p[0] = val
 
 parser = yacc.yacc(debug=True)
@@ -208,25 +223,22 @@ def parse_string(s):
     parser.parse(s)
     return to_print
 
-result = parser.parse("""
-5 + 3;
-""")
-print(result)
-
 # Example on how to test locally in this file:
-#parser.parse("""
-#x = 5 + 4 * 5;
-#i = 1 + 1 * 0;
-#print(i);
-#{
-#  l = 5 ^ x;
-#    {
-#        k = 5 + 7;
-#    }
-#}
-#q = x / i;
-#print(q);
-#""")
+parser.parse("""
+x = 5 + 4 * 5;
+i = 1 + 1 * 0;
+print(i);
+{
+  l = 5 ^ x;
+    {
+        k = 5 + 7;
+    }
+  c = 2;
+}
+b = 1
+q = x / i;
+print(q);
+""")
 
-#for p in to_print:
-#    print(p)
+for p in to_print:
+    print(p)
