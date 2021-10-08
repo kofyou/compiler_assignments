@@ -13,7 +13,7 @@ class SymbolTable:
     def __init__(self):
         pass
     
-    def insert(self,name,value):
+    def insert(self, name, value):
         pass
 
     def lookup(self, name):
@@ -32,7 +32,7 @@ reserved = {
 }
 
 tokens = ["ID", "INT", "FLOAT", "EQUAL", "PLUS", "MINUS", "MULT", "DIV", 
-        "EXP", "LPAR", "RPAR", "LBRA", "RBRA", "SEMI"] + list(reserved.values())
+        "CARROT", "LPAR", "RPAR", "LBRA", "RBRA", "SEMI"] + list(reserved.values())
 
 # token specification
 t_INT = '0|[1-9][0-9]*'
@@ -42,7 +42,7 @@ t_PLUS = '\+'
 t_MINUS = '-'
 t_MULT = '\*'
 t_DIV = '/'
-t_EXP = '\^'
+t_CARROT = '\^'
 t_LPAR = '\('
 t_RPAR = '\)'
 t_LBRA = '{'
@@ -93,27 +93,110 @@ def p_error(p):
 # production rules
 # You must implement all the production rules. Please review slides
 # from Oct. 4 if you need a reference.
-def p_statements_braces(p):
-    "statements : lbra statements rbra"
 
-def p_statements_recursive(p):
-    "statements : statement SEMI statements"
+#def p_statements_braces(p):
+#    "statements : lbra statements rbra"    
 
-def p_statements_empty(p):
-    "statements :"
+#def p_statements_recursive(p):
+#    "statements : statement SEMI statements"
 
+#def p_statements_empty(p):
+#    "statements :"
+
+# statements produces braces or statement recursion
+def p_statements(p):
+    """
+    statements : lbra statements rbra
+                | statement SEMI statements
+                |
+    """
+
+# left brace '{' initiates an inner scope 
 def p_lbra(p):
     "lbra : LBRA"
+    ST.push_scope()
 
+# right brace '{' ends a scope
 def p_rbra(p):
     "rbra : RBRA"
-    
+    ST.pop_scope()
+
+# print append value to list for future output
 def p_statement_print(p):
     "statement : PRINT LPAR ID RPAR"
+    to_print.append(ST.lookup(p[3]))
 
+# assignment declares new variable; check re-declaration
 def p_statement_assignment(p):
-    "statement : ID EQUAL EXPR"
+    "statement : ID EQUAL expr"
+    if (ST.insert(p[1], p[3]) == False):
+        #handle
 
+# following are rules encoded with precedence and associativity 
+def p_expr(p):
+    """
+    expr : expr PLUS term
+        | expr MINUS term
+        | term
+    """
+    if (p[2] == '+'):
+        p[0] = p[1] + p[3]
+    elif (p[2] == '-'):
+        p[0] = p[1] - p[3]
+    elif (len(p) == 2):
+        p[0] = p[1]
+
+# check divides by zero
+def p_term(p):
+    """
+    term : term MULT pow
+        | term DIV pow
+        | pow
+    """
+    if (p[2] == '*'):
+        p[0] = p[1] * p[3]
+    elif (p[2] == '/'):
+        if (p[3] == 0)
+            #handle
+        p[0] = p[1] / p[3]
+    elif (len(p) == 2):
+        p[0] = p[1]
+
+def p_pow(p):
+    """
+    pow : factor CARROT pow
+        | factor
+    """
+    if (p[2] == '^'):
+        p[0] = p[1] ^ p[3]
+    elif (len(p) == 2):
+        p[0] = p[1]
+
+def p_factor(p):
+    """
+    factor : LPAR expr RPAR
+        | num
+    """
+    if (p[1] == '('):
+        p[0] = p[2]
+    elif (len(p) == 2):
+        p[0] = p[1]
+
+def p_num_int(p):
+    "num : INT"
+    p[0] = int(p[1])
+
+def p_num_float(p):
+    "num : FLOAT"
+    p[0] = float(p[1])
+
+# returns value of variable; check usage without declaration
+def p_num_id(p):
+    "num : ID"
+    val = ST.lookup(p[1])
+    if not val:
+        #handle
+    p[0] = val
 
 parser = yacc.yacc(debug=True)
 
