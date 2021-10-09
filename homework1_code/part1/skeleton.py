@@ -219,10 +219,8 @@ def p_num_float(p):
 def p_num_id(p):
     "num : ID"
     val = ST.lookup(p[1])
-    if val is not None:
-        #handle
-        print("usage without declaration")
-        exit
+    if val is None:
+        raise SymbolTableException()
     p[0] = val
 
 parser = yacc.yacc(debug=True)
