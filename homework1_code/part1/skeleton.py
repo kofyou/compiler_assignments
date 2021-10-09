@@ -17,10 +17,19 @@ class SymbolTable:
     def insert(self, name, value):
         if name in self.dics[-1]:
             #handle
-            print("redeclaration")
+            print("should update rather than insert\n")
             exit
         else:
             self.dics[-1][name] = value
+
+    def update(self, name, value):
+        for dic in reversed(self.dics):
+            if name in dic:
+                dic[name] = value
+                return
+        #handle
+        print("should insert rather than update\n")
+        exit
 
     # in case of 
     def lookup(self, name):
@@ -140,7 +149,10 @@ def p_statement_print(p):
 # assignment declares new variable
 def p_statement_assignment(p):
     "statement : ID EQUAL expr"
-    ST.insert(p[1], p[3])
+    if ST.lookup(p[1]) is None:
+        ST.insert(p[1], p[3])
+    else:
+        ST.update(p[1], p[3])
 
 # following are rules encoded with precedence and associativity 
 def p_expr(p):
@@ -207,7 +219,7 @@ def p_num_float(p):
 def p_num_id(p):
     "num : ID"
     val = ST.lookup(p[1])
-    if not val:
+    if val is not None:
         #handle
         print("usage without declaration")
         exit
@@ -233,9 +245,7 @@ print(i);
     {
         k = 5 + 7;
     }
-  c = 2;
 }
-b = 1
 q = x / i;
 print(q);
 """)
