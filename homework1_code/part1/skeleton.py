@@ -117,7 +117,7 @@ def p_error(p):
 # statements produces braces or statement recursion
 def p_statements(p):
     """
-    statements : lbra statements rbra
+    statements : lbra statements rbra statements
                 | statement SEMI statements
                 |
     """
@@ -183,7 +183,7 @@ def p_pow(p):
     if len(p) == 2:
         p[0] = p[1]
     elif p[2] == '^':
-        p[0] = p[1] ^ p[3]
+        p[0] = p[1] ** p[3]
 
 def p_factor(p):
     """
