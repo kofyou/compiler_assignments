@@ -56,7 +56,7 @@ tokens = ["ID", "INT", "FLOAT", "EQUAL", "PLUS", "MINUS", "MULT", "DIV",
 
 # token specification
 t_INT = '0|[1-9][0-9]*'
-t_FLOAT = '(0|[1-9][0-9]*).[0-9]*[1-9]'
+t_FLOAT = '(0|[1-9][0-9]*)\.[0-9]*[1-9]'
 t_EQUAL = '='
 t_PLUS = '\+'
 t_MINUS = '-'
