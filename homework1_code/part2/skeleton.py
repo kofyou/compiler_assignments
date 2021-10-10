@@ -109,8 +109,10 @@ def nullable_concat(re):
 
 # Homework step 1: implement this function
 # The nullable implementation for an RE node that is a UNION operator
-def nullable_union(re):    
-    raise NotImplementedError
+def nullable_union(re):
+    nullable_lhs = nullable(re.lhs)
+    nullable_rhs = nullable(re.rhs)
+    return mk_union(nullable_lhs, nullable_rhs)
 
 # Begin Derivative function: This function takes a character (char)
 # and an RE (re). It returns the RE that is the derivative of re with
@@ -158,14 +160,17 @@ def derivative_re_union(char, re):
 # Homework step 2: Implement this function.
 # Returns the derivative of a STAR re with respect to char
 def derivative_re_star(char, re):
-    raise NotImplementedError
+    return mk_concat(derivative_re(char, re.lhs), mk_star(re.lhs))
 
 # Homework step 3: Implement this function. Recall that the nullable
 # function returns an RE that you can use as an argument to build a
 # bigger RE.
 # Returns the derivative of a CONCAT re with respect to char
 def derivative_re_concat(char, re):
-    raise NotImplementedError
+    derivative_lhs = derivative_re(char, re.lhs)
+    nullable_lhs = nullable(re.lhs)
+    derivative_rhs = derivative_re(char, re.rhs)
+    return mk_union(mk_concat(derivative_lhs, re.rhs), mk_concat(nullable_lhs, derivative_rhs))
 
 # High-level function to match a string using regular experession
 # derivatives:
