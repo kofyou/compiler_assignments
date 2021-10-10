@@ -1,7 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
-tokens = ['CHARACTER', 'UNION', 'DOT', 'STAR', 'OPEN_PAREN', 'CLOSE_PAREN']
+tokens = ['CHARACTER', 'UNION', 'DOT', 'STAR', 'OPEN_PAREN', 'CLOSE_PAREN', 'QMARK']
 
 # characters we will support in our regex
 t_CHARACTER = '[a-zA-Z0-9]'
@@ -12,6 +12,7 @@ t_DOT = '\.'
 t_STAR = '\*'
 t_OPEN_PAREN = '\('
 t_CLOSE_PAREN = '\)'
+t_QMARK = '\?'
 
 # Ignore spaces
 t_ignore = ' '
@@ -197,20 +198,35 @@ def p_re_recusive(p):
     p[0] = mk_union(p[1], p[3])
 
 def p_concat_single(p):
-    'concat : starred'
+    """
+    concat : starred
+            | optional
+    """
     p[0] = p[1]
 
 def p_concat_recusive(p):
-    'concat : starred DOT concat'
+    """
+    concat : starred DOT concat
+            | optional DOT concat
+    """
     p[0] = mk_concat(p[1], p[3])
 
 def p_base_singleton(p):
-    'starred : paren'
+    """
+    starred : paren
+    optional : paren
+    """
     p[0] = p[1]
 
 def p_base_recursive(p):
-    'starred : starred STAR'
-    p[0] = mk_star(p[1])
+    """
+    starred : starred STAR
+    optional : optional QMARK
+    """
+    if p[2] == '*':
+        p[0] = mk_star(p[1])
+    elif p[2] == '?':
+        p[0] = mk_union(mk_epsilon(), p[1])
 
 def p_paren_singleton(p):
     'paren : symbol'
