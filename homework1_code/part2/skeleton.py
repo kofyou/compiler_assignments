@@ -110,6 +110,10 @@ def nullable_concat(re):
 
 # Homework step 1: implement this function
 # The nullable implementation for an RE node that is a UNION operator
+
+# This function highly resembles the previous one. I copied and only
+# altered the function called. The code style of the rest, including
+# variable names, mimics what has already been provided.
 def nullable_union(re):
     nullable_lhs = nullable(re.lhs)
     nullable_rhs = nullable(re.rhs)

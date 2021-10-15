@@ -31,7 +31,6 @@ class SymbolTable:
         print("should insert rather than update\n")
         exit
 
-    # in case of 
     def lookup(self, name):
         for dic in reversed(self.dics):
             if name in dic:
@@ -54,7 +53,7 @@ reserved = {
 tokens = ["ID", "INT", "FLOAT", "EQUAL", "PLUS", "MINUS", "MULT", "DIV", 
         "CARROT", "LPAR", "RPAR", "LBRA", "RBRA", "SEMI"] + list(reserved.values())
 
-# token specification
+# Token specification
 t_INT = '0|[1-9][0-9]*'
 t_FLOAT = '(0|[1-9][0-9]*)\.[0-9]*[1-9]'
 t_EQUAL = '='
@@ -70,7 +69,7 @@ t_RBRA = '}'
 t_SEMI = ';'
 t_ignore = ' '
 
-# token actions
+# Token actions
 def t_ID(t):
     "[a-zA-Z]+"
     t.type = reserved.get(t.value, 'ID')
@@ -110,20 +109,12 @@ def p_error(p):
         print("Syntax error in input")
     raise ParsingException()
 
-# production rules
+# Production rules
 # You must implement all the production rules. Please review slides
 # from Oct. 4 if you need a reference.
 
-#def p_statements_braces(p):
-#    "statements : lbra statements rbra"    
-
-#def p_statements_recursive(p):
-#    "statements : statement SEMI statements"
-
-#def p_statements_empty(p):
-#    "statements :"
-
-# statements produces braces or statement recursion
+# Statements produces braces, statement recursion, or empty string
+# that terminates recursion
 def p_statements(p):
     """
     statements : lbra statements rbra statements
@@ -131,22 +122,22 @@ def p_statements(p):
                 |
     """
 
-# left brace '{' initiates an inner scope 
+# Left brace '{' initiates an inner scope
 def p_lbra(p):
     "lbra : LBRA"
     ST.push_scope()
 
-# right brace '{' ends a scope
+# Right brace '{' ends a scope
 def p_rbra(p):
     "rbra : RBRA"
     ST.pop_scope()
 
-# print append value to list for future output
+# Print appends value to the list for future output
 def p_statement_print(p):
     "statement : PRINT LPAR ID RPAR"
     to_print.append(ST.lookup(p[3]))
 
-# assignment declares new variable
+# Assignment declares new variable or updates existing one
 def p_statement_assignment(p):
     "statement : ID EQUAL expr"
     if ST.lookup(p[1]) is None:
@@ -154,7 +145,12 @@ def p_statement_assignment(p):
     else:
         ST.update(p[1], p[3])
 
-# following are rules encoded with precedence and associativity 
+# Following are rules about operations encoded with precedence
+# and associativity
+# Reference: These production rules are copied from sildes
+# from Oct. 4
+
+# Rules with smaller length comes first or it leads to "index out of range"
 def p_expr(p):
     """
     expr : expr PLUS term
@@ -168,7 +164,7 @@ def p_expr(p):
     elif p[2] == '-':
         p[0] = p[1] - p[3]
 
-# check divides by zero
+# Checks dividing by zero
 def p_term(p):
     """
     term : term MULT pow
@@ -215,7 +211,7 @@ def p_num_float(p):
     "num : FLOAT"
     p[0] = float(p[1])
 
-# returns value of variable; check usage without declaration
+# Returns value of variable; checks usage without declaration
 def p_num_id(p):
     "num : ID"
     val = ST.lookup(p[1])
