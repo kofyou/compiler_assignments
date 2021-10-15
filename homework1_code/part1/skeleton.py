@@ -132,10 +132,15 @@ def p_rbra(p):
     "rbra : RBRA"
     ST.pop_scope()
 
-# Print appends value to the list for future output
+# Print appends value to the list for future output or
+# raise exception when the variable does not exist
 def p_statement_print(p):
     "statement : PRINT LPAR ID RPAR"
-    to_print.append(ST.lookup(p[3]))
+    val = ST.lookup(p[3])
+    if val is None:
+        raise SymbolTableException()
+    else:
+        to_print.append(int(val) if val.is_integer() else val)
 
 # Assignment declares new variable or updates existing one
 def p_statement_assignment(p):
@@ -205,7 +210,7 @@ def p_factor(p):
 
 def p_num_int(p):
     "num : INT"
-    p[0] = int(p[1])
+    p[0] = float(p[1])
 
 def p_num_float(p):
     "num : FLOAT"
