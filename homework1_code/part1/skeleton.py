@@ -13,29 +13,32 @@ class SymbolTable:
     def __init__(self):
         self.dics = [{}]
     
-    # check re-declaration
-    def insert(self, name, value):
-        if name in self.dics[-1]:
-            #handle
-            print("should update rather than insert\n")
-            exit
-        else:
-            self.dics[-1][name] = value
-
-    def update(self, name, value):
-        for dic in reversed(self.dics):
-            if name in dic:
-                dic[name] = value
-                return
-        #handle
-        print("should insert rather than update\n")
-        exit
-
-    def lookup(self, name):
+    # global lookup is used for expressions and outputs
+    def global_lookup(self, name):
         for dic in reversed(self.dics):
             if name in dic:
                 return dic[name]
         return None
+
+    # local lookup is used for new local variables
+    def local_lookup(self, name):
+        if name in self.dics[-1]:
+            return self.dics[-1][name]
+        else:
+            return None
+
+    # insert and update are similar but used in different scenarios
+    def insert(self, name, value):
+        if self.local_lookup(name) is not None:
+            #handle
+            print("should update rather than insert\n")
+        self.dics[-1][name] = value
+
+    def update(self, name, value):
+        if self.local_lookup(name) is None:
+            #handle
+            print("should insert rather than update\n")
+        self.dics[-1][name] = value
 
     def push_scope(self):
         self.dics.append({})
@@ -132,20 +135,21 @@ def p_rbra(p):
     "rbra : RBRA"
     ST.pop_scope()
 
-# Print appends value to the list for future output or
+# Print appends the value to the list for future output or
 # raise exception when the variable does not exist
 def p_statement_print(p):
     "statement : PRINT LPAR ID RPAR"
-    val = ST.lookup(p[3])
+    val = ST.global_lookup(p[3])
     if val is None:
+        print(p[3] + " is not assigned or out of scope")
         raise SymbolTableException()
     else:
         to_print.append(int(val) if val.is_integer() else val)
 
-# Assignment declares new variable or updates existing one
+# Assignment inserts a new variable or updates an existing one
 def p_statement_assignment(p):
     "statement : ID EQUAL expr"
-    if ST.lookup(p[1]) is None:
+    if ST.local_lookup(p[1]) is None:
         ST.insert(p[1], p[3])
     else:
         ST.update(p[1], p[3])
@@ -219,8 +223,9 @@ def p_num_float(p):
 # Returns value of variable; checks usage without declaration
 def p_num_id(p):
     "num : ID"
-    val = ST.lookup(p[1])
+    val = ST.global_lookup(p[1])
     if val is None:
+        print(p[1] + " is not assigned or out of scope")
         raise SymbolTableException()
     p[0] = val
 
