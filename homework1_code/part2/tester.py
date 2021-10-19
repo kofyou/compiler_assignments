@@ -22,7 +22,11 @@ tests = [("z", "z", True),
          ("u.c.s.c*|s.l.u.g.s|c.s*.e", "slug", False),
          ("u.c.s.c*|s.l.u.g.s|c.s*.e", "slugs", True),
          ("u.c.s.c*|s.l.u.g.s|c.s*.e", "ucs", True),
-         ("u.c.s.c*|s.l.u.g.s|c.s*.e", "ucslugs", False)]
+         ("u.c.s.c*|s.l.u.g.s|c.s*.e", "ucslugs", False),
+         # My cases:
+         ("(h.a.p.p.y|s.a.d)*", "", True),
+         ("(h.a.p.p.y|s.a.d)*", "sadsadhappy", True),
+         ("(h.a.p.p.y|s.a.d)*", "happysad", True)]
 
 failed = 0
 total = len(tests)

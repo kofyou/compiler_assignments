@@ -12,7 +12,11 @@ tests = [("z?", "z", True),
          ("e.x.c.i.t.e.(m.e.n.t)? | c.a.r.s?", "excite", True),
          ("e.x.c.i.t.e.(m.e.n.t)? | c.a.r.s?", "excitement", True),
          ("e.x.c.i.t.e.(m.e.n.t)? | c.a.r.s?", "car", True),
-         ("e.x.c.i.t.e.(m.e.n.t)? | c.a.r.s?", "cars", True)]
+         ("e.x.c.i.t.e.(m.e.n.t)? | c.a.r.s?", "cars", True),
+         # My cases:
+         ("a.l.l.(p.a.s.s.e.d|f.a.i.l.e.d)?", "all", True),
+         ("a.l.l.(p.a.s.s.e.d|f.a.i.l.e.d)?", "allpassed", True),
+         ("a.l.l.(p.a.s.s.e.d|f.a.i.l.e.d)?", "allfailed", True)]
 
 failed = 0
 total = len(tests)
