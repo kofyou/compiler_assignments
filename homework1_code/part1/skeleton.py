@@ -27,16 +27,17 @@ class SymbolTable:
         else:
             return None
 
-    # insert and update are similar but used in different scenarios
+    # insert and update are similar but used in different scenarios,
+    # suggested by the google Q&A document.
+    # insert if the current scope does not have a variable with the same name
     def insert(self, name, value):
         if self.local_lookup(name) is not None:
-            #handle
             print("should update rather than insert\n")
         self.dics[-1][name] = value
 
+    # update if the current scope has a variable with the same name
     def update(self, name, value):
         if self.local_lookup(name) is None:
-            #handle
             print("should insert rather than update\n")
         self.dics[-1][name] = value
 
@@ -154,10 +155,9 @@ def p_statement_assignment(p):
     else:
         ST.update(p[1], p[3])
 
-# Following are rules about operations encoded with precedence
+# Following are rules for operations encoded with precedence
 # and associativity
-# Reference: These production rules are copied from sildes
-# from Oct. 4
+# Reference: These production rules are copied from sildes from Oct. 4
 
 # Rules with smaller length comes first or it leads to "index out of range"
 def p_expr(p):
@@ -186,7 +186,6 @@ def p_term(p):
         p[0] = p[1] * p[3]
     elif p[2] == '/':
         if p[3] == 0:
-            #handle
             print("divided by zero")
             exit
         else:
@@ -220,7 +219,7 @@ def p_num_float(p):
     "num : FLOAT"
     p[0] = float(p[1])
 
-# Returns value of variable; checks usage without declaration
+# Returns the value of a variable; checks usages without declarations
 def p_num_id(p):
     "num : ID"
     val = ST.global_lookup(p[1])
