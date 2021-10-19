@@ -111,9 +111,12 @@ def nullable_concat(re):
 # Homework step 1: implement this function
 # The nullable implementation for an RE node that is a UNION operator
 
-# This function highly resembles the previous one. I copied and only
-# altered the function called. The code style of the rest, including
-# variable names, mimics what has already been provided.
+# Reference:
+# 1. Sildes from oct 8;
+# 2. This function highly resembles the previous one. I copied and only
+# altered the function called;
+# 3. The code style of the rest, including variable names, mimics what
+# has already been provided.
 def nullable_union(re):
     nullable_lhs = nullable(re.lhs)
     nullable_rhs = nullable(re.rhs)
@@ -222,6 +225,8 @@ def p_base_singleton(p):
     """
     p[0] = p[1]
 
+# As suggested by the assignmnet, "This operator matches zero or one instance of
+# the sub-expression."
 def p_base_recursive(p):
     """
     starred : starred STAR
