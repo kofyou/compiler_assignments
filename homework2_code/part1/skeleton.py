@@ -185,9 +185,9 @@ def replace_redundant_part1(input_block):
 
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
         rhs_string = instr.pprint_rhs()
-        lhs_to_take_place = rhs_map.get(rhs_string)
-        if lhs_to_take_place is not None:
-            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_take_place))
+        lhs_to_replace = rhs_map.get(rhs_string)
+        if lhs_to_replace is not None:
+            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
             replaced_instructions += 1
         else:
             rhs_map[rhs_string] = lhs
@@ -235,9 +235,9 @@ def replace_redundant_part2(input_block):
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
         instr.sort_operands()
         rhs_string = instr.pprint_rhs()
-        lhs_to_take_place = rhs_map.get(rhs_string)
-        if lhs_to_take_place is not None:
-            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_take_place))
+        lhs_to_replace = rhs_map.get(rhs_string)
+        if lhs_to_replace is not None:
+            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
             replaced_instructions += 1
         else:
             rhs_map[rhs_string] = lhs
@@ -295,9 +295,9 @@ def replace_redundant_part3(input_block):
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
         instr.sort_operands()
         rhs_string = instr.pprint_rhs()
-        lhs_to_take_place = rhs_map.get(rhs_string)
-        if lhs_to_take_place is not None and lhs_to_take_place.get_number() == active_var_map[lhs_to_take_place.get_name()]:
-            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_take_place))
+        lhs_to_replace = rhs_map.get(rhs_string)
+        if lhs_to_replace is not None and lhs_to_replace.get_number() == active_var_map[lhs_to_replace.get_name()]:
+            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
             # active_var_map[lhs.get_name()] = lhs.get_number()
             replaced_instructions += 1
         else:
@@ -356,10 +356,10 @@ def replace_redundant_part4(input_block):
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
         instr.sort_operands()
         rhs_string = instr.pprint_rhs()
-        lhs_set_to_take_place = rhs_map.get(rhs_string, set())
-        lhs_to_take_place = next((x for x in lhs_set_to_take_place if x.get_number() == active_var_map[x.get_name()]), None)
-        if lhs_to_take_place is not None:
-            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_take_place))
+        lhs_set_to_replace = rhs_map.get(rhs_string, set())
+        lhs_to_replace = next((x for x in lhs_set_to_replace if x.get_number() == active_var_map[x.get_name()]), None)
+        if lhs_to_replace is not None:
+            return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
             replaced_instructions += 1
         else:
             return_block.add_instruction(instr)
