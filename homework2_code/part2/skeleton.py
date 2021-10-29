@@ -111,8 +111,17 @@ def compute_VarDomain(CFG):
 def compute_UEVar(CFG):
     UEVar = {}
 
-    # Homework: implement this function.
-        
+    for n in CFG.nodes():
+
+        #
+        var = reads_var(get_node_instruction(n))
+
+        #
+        if var is not None:
+            UEVar[n] = set([var])
+        else:
+            UEVar[n] = set()
+
     return UEVar
 
 # get the VarKill set:
@@ -121,8 +130,17 @@ def compute_UEVar(CFG):
 def compute_VarKill(CFG):
     VarKill = {}
 
-    # Homework: implement this function.
-    
+    for n in CFG.nodes():
+
+        #
+        var = writes_var(get_node_instruction(n))
+
+        #
+        if var is not None:
+            VarKill[n] = set([var])
+        else:
+            VarKill[n] = set()
+
     return VarKill
 
 # iteratively compute LiveOut
@@ -136,8 +154,21 @@ def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
 
     LiveOut = {}
 
-    # Homework: implement this function.
-        
+    changed = True
+    while changed:
+        changed = False
+        for n in CFG.nodes():
+            NodeLiveOut = set()
+            # consider all information upflowed from successors
+            for succ in get_node_successors(CFG, n):
+                # upward exposed live variables: live varibles of succ that are not killed
+                UELive = LiveOut.get(succ, set()).intersection(VarDomain.difference(VarKill[succ]))
+                # UEVar of succ also contributes
+                NodeLiveOut = NodeLiveOut.union(UEVar[succ], UELive)
+            if NodeLiveOut != LiveOut.get(n, set()):
+                changed = True
+                LiveOut[n] = NodeLiveOut
+
     return LiveOut
 
 # The uninitialized variables are the LiveOut variables from the start
