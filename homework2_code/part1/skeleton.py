@@ -298,6 +298,7 @@ def replace_redundant_part3(input_block):
         lhs_to_take_place = rhs_map.get(rhs_string)
         if lhs_to_take_place is not None and lhs_to_take_place.get_number() == active_var_map[lhs_to_take_place.get_name()]:
             return_block.add_instruction(AssignmentInstr(lhs, lhs_to_take_place))
+            # active_var_map[lhs.get_name()] = lhs.get_number()
             replaced_instructions += 1
         else:
             rhs_map[rhs_string] = lhs
@@ -325,12 +326,13 @@ def replace_redundant_part3(input_block):
 # You cannot replace 'z = b + c' with 'z = a' because 'a' no longer
 # contains 'b + c', it was overwitten. BUT you can replace it with
 # 'q', because 'q' also contains 'b+c' and it was NOT overwritten.
+from collections import defaultdict
 def replace_redundant_part4(input_block):
 
     # block to return
     return_block = BasicBlock([])
     # rhs arithmetic operations maps to a set of lhs variables
-    rhs_map = {}
+    rhs_map = defaultdict(set)
     # lhs variable name maps to the most recent lhs variable number
     active_var_map = {}
 
@@ -354,15 +356,16 @@ def replace_redundant_part4(input_block):
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
         instr.sort_operands()
         rhs_string = instr.pprint_rhs()
-        lhs_to_take_place = rhs_map.get(rhs_string)
-        if lhs_to_take_place is not None and lhs_to_take_place.get_number() == active_var_map[lhs_to_take_place.get_name()]:
+        lhs_set_to_take_place = rhs_map.get(rhs_string, set())
+        lhs_to_take_place = next((x for x in lhs_set_to_take_place if x.get_number() == active_var_map[x.get_name()]), None)
+        if lhs_to_take_place is not None:
             return_block.add_instruction(AssignmentInstr(lhs, lhs_to_take_place))
             replaced_instructions += 1
         else:
-            rhs_map[rhs_string] = lhs
-            active_var_map[lhs.get_name()] = lhs.get_number()
             return_block.add_instruction(instr)
-        
+        rhs_map[rhs_string].add(lhs)
+        active_var_map[lhs.get_name()] = lhs.get_number()
+
     return return_block, replaced_instructions
 
 # This is required for grading. It runs all 4 parts and returns how
@@ -431,7 +434,7 @@ def check_block(block, p1, p2, p3, p4):
     assert(res[1] == p1)
     assert(res[3] == p2)
     assert(res[5] == p3)
-    #assert(res[7] == p4)
+    assert(res[7] == p4)
 
 if __name__ == "__main__":
     check_block(block1, 1, 1, 1, 1)
