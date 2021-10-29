@@ -153,6 +153,9 @@ def compute_VarKill(CFG):
 def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
 
     LiveOut = {}
+    #
+    for n in CFG.nodes():
+        LiveOut[n] = set()
 
     changed = True
     while changed:
@@ -162,10 +165,10 @@ def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
             # consider all information upflowed from successors
             for succ in get_node_successors(CFG, n):
                 # upward exposed live variables: live varibles of succ that are not killed
-                UELive = LiveOut.get(succ, set()).intersection(VarDomain.difference(VarKill[succ]))
+                UELive = LiveOut[succ].intersection(VarDomain.difference(VarKill[succ]))
                 # UEVar of succ also contributes
                 NodeLiveOut = NodeLiveOut.union(UEVar[succ], UELive)
-            if NodeLiveOut != LiveOut.get(n, set()):
+            if NodeLiveOut != LiveOut[n]:
                 changed = True
                 LiveOut[n] = NodeLiveOut
 
