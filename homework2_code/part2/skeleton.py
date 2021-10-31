@@ -113,10 +113,10 @@ def compute_UEVar(CFG):
 
     for n in CFG.nodes():
 
-        #
+        # in a single instruction, the variable read is always read before written to
         var = reads_var(get_node_instruction(n))
 
-        #
+        # add the variable to the corresponding set or initialize an empty set
         if var is not None:
             UEVar[n] = set([var])
         else:
@@ -132,16 +132,42 @@ def compute_VarKill(CFG):
 
     for n in CFG.nodes():
 
-        #
+        # the variable get written is killed
         var = writes_var(get_node_instruction(n))
 
-        #
+        # add the variable to the corresponding set or initialize an empty set
         if var is not None:
             VarKill[n] = set([var])
         else:
             VarKill[n] = set()
 
     return VarKill
+
+def postorder_traversal(CFG, n, visited, result):
+    visited[n] = True
+    for succ in get_node_successors(CFG, n):
+        if visited[succ] is False:
+            postorder_traversal(CFG, succ, visited, result)
+    result.append(n)
+    return
+
+def get_traverse_order(mode, CFG, n, visited, result):
+    if mode == "PO":
+        visited[n] = True
+        for succ in get_node_successors(CFG, n):
+            if visited[succ] is False:
+                result = get_traverse_order("PO", CFG, succ, visited, result)
+        result.append(n)
+        return result
+    elif mode == "RPO":
+        result = get_traverse_order("PO", CFG, n, visited, result)
+        result.reverse()
+        return result
+    elif mode == "RPO on R":
+        result = get_traverse_order("RPO", CFG.reverse(), n, visited, result)
+        return result
+    else:
+        return CFG.nodes()
 
 # iteratively compute LiveOut
 
@@ -153,14 +179,30 @@ def compute_VarKill(CFG):
 def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
 
     LiveOut = {}
-    #
+
+    # all node start with an empty set
     for n in CFG.nodes():
         LiveOut[n] = set()
 
+    # calculate order
+    visited = {n : False for n in CFG.nodes()}
+    traverse_order = get_traverse_order("RPO on R", CFG, CFG.get_node(0), visited, [])
+    # traverse_order = get_traverse_order("default", CFG, CFG.get_node(0), visited, [])
+    print(traverse_order)
+    for n in CFG.nodes():
+        print(n, get_node_instruction(n))
+    #print(CFG.nodes())
+    print("===========")
+    rCFG = CFG.reverse()
+    for n in rCFG.nodes():
+        print(n, get_node_instruction(n))
+
+    # the flag for fixed point algorithm
     changed = True
     while changed:
         changed = False
-        for n in CFG.nodes():
+        for n in traverse_order:
+            # re-calculate the LiveOut set
             NodeLiveOut = set()
             # consider all information upflowed from successors
             for succ in get_node_successors(CFG, n):
@@ -168,6 +210,8 @@ def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
                 UELive = LiveOut[succ].intersection(VarDomain.difference(VarKill[succ]))
                 # UEVar of succ also contributes
                 NodeLiveOut = NodeLiveOut.union(UEVar[succ], UELive)
+
+            # if LiveOut changes, the loop goes on
             if NodeLiveOut != LiveOut[n]:
                 changed = True
                 LiveOut[n] = NodeLiveOut
