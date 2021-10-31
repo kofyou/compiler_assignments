@@ -151,23 +151,22 @@ def postorder_traversal(CFG, n, visited, result):
     result.append(n)
     return
 
-def get_traverse_order(mode, CFG, n, visited, result):
+def get_traverse_order(mode, CFG):
+    result = []
+    visited = {n : False for n in CFG.nodes()}
+
     if mode == "PO":
-        visited[n] = True
-        for succ in get_node_successors(CFG, n):
-            if visited[succ] is False:
-                result = get_traverse_order("PO", CFG, succ, visited, result)
-        result.append(n)
-        return result
+        postorder_traversal(CFG, CFG.get_node(0), visited, result)
     elif mode == "RPO":
-        result = get_traverse_order("PO", CFG, n, visited, result)
+        postorder_traversal(CFG, CFG.get_node(0), visited, result)
         result.reverse()
-        return result
     elif mode == "RPO on R":
-        result = get_traverse_order("RPO", CFG.reverse(), n, visited, result)
-        return result
+        postorder_traversal(CFG.reverse(), CFG.get_node(CFG.order() - 1), visited, result)
+        result.reverse()
     else:
-        return CFG.nodes()
+        result = CFG.nodes()
+
+    return result
 
 # iteratively compute LiveOut
 
@@ -185,21 +184,25 @@ def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
         LiveOut[n] = set()
 
     # calculate order
-    visited = {n : False for n in CFG.nodes()}
-    traverse_order = get_traverse_order("RPO on R", CFG, CFG.get_node(0), visited, [])
-    # traverse_order = get_traverse_order("default", CFG, CFG.get_node(0), visited, [])
+    traverse_order = get_traverse_order("default", CFG)
+    # traverse_order = get_traverse_order("default", CFG)
     print(traverse_order)
-    for n in CFG.nodes():
+    for n in traverse_order:
         print(n, get_node_instruction(n))
-    #print(CFG.nodes())
-    print("===========")
-    rCFG = CFG.reverse()
-    for n in rCFG.nodes():
-        print(n, get_node_instruction(n))
+    # for n in CFG.nodes():
+    #     print(n, get_node_instruction(n))
+    # print(CFG.nodes())
+    # print("===========")
+    # rCFG = CFG.reverse()
+    # for n in rCFG.nodes():
+    #     print(n, get_node_instruction(n))
 
+    # when will it converge?
+    counter = 0
     # the flag for fixed point algorithm
     changed = True
     while changed:
+        counter += 1
         changed = False
         for n in traverse_order:
             # re-calculate the LiveOut set
@@ -216,6 +219,7 @@ def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
                 changed = True
                 LiveOut[n] = NodeLiveOut
 
+    print("c: ", counter)
     return LiveOut
 
 # The uninitialized variables are the LiveOut variables from the start
