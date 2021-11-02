@@ -108,6 +108,10 @@ def compute_VarDomain(CFG):
 # get the UEVar set:
 # hint: iterate over all the nodes and record only some of the variables
 # used. Use reads_var and/or writes_var function to get variables
+
+# Reference: The code style of my implementations, including but not
+# limited to variable names and some structures like loops,
+# mimics what has already been provided.
 def compute_UEVar(CFG):
     UEVar = {}
 
@@ -116,7 +120,7 @@ def compute_UEVar(CFG):
         # in a single instruction, the variable read is always read before written to
         var = reads_var(get_node_instruction(n))
 
-        # add the variable to the corresponding set or initialize an empty set
+        # initialize with a set containing the variable or an empty set
         if var is not None:
             UEVar[n] = set([var])
         else:
@@ -135,7 +139,7 @@ def compute_VarKill(CFG):
         # the variable get written is killed
         var = writes_var(get_node_instruction(n))
 
-        # add the variable to the corresponding set or initialize an empty set
+        # initialize with a set containing the variable or an empty set
         if var is not None:
             VarKill[n] = set([var])
         else:
@@ -143,14 +147,20 @@ def compute_VarKill(CFG):
 
     return VarKill
 
+# postorder: visit successors first
 def postorder_traversal(CFG, n, visited, result):
+    # mark as visited
     visited[n] = True
     for succ in get_node_successors(CFG, n):
+        # visit the successor not visited yet
         if visited[succ] is False:
+            # recursively visit the successor
             postorder_traversal(CFG, succ, visited, result)
+    # visit the current node at last
     result.append(n)
     return
 
+# which way to go
 def get_traverse_order(mode, CFG):
     result = []
     visited = {n : False for n in CFG.nodes()}
@@ -159,9 +169,12 @@ def get_traverse_order(mode, CFG):
         postorder_traversal(CFG, CFG.get_node(0), visited, result)
     elif mode == "RPO":
         postorder_traversal(CFG, CFG.get_node(0), visited, result)
+        # reverse the PO order
         result.reverse()
     elif mode == "RPO on R":
+        # traverse the reversed graph with postorder; should start with the new root
         postorder_traversal(CFG.reverse(), CFG.get_node(CFG.order() - 1), visited, result)
+        # reverse the PO order
         result.reverse()
     else:
         result = CFG.nodes()
@@ -185,21 +198,13 @@ def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
 
     # calculate order
     traverse_order = get_traverse_order("default", CFG)
-    # traverse_order = get_traverse_order("default", CFG)
-    print(traverse_order)
-    for n in traverse_order:
-        print(n, get_node_instruction(n))
-    # for n in CFG.nodes():
-    #     print(n, get_node_instruction(n))
-    # print(CFG.nodes())
-    # print("===========")
-    # rCFG = CFG.reverse()
-    # for n in rCFG.nodes():
+    # print(traverse_order)
+    # for n in traverse_order:
     #     print(n, get_node_instruction(n))
 
     # when will it converge?
     counter = 0
-    # the flag for fixed point algorithm
+    # the flag for the fixed point algorithm
     changed = True
     while changed:
         counter += 1
@@ -219,7 +224,7 @@ def compute_LiveOut(CFG, UEVar, VarKill, VarDomain):
                 changed = True
                 LiveOut[n] = NodeLiveOut
 
-    print("c: ", counter)
+    print("converge after: ", counter)
     return LiveOut
 
 # The uninitialized variables are the LiveOut variables from the start
@@ -261,3 +266,31 @@ if __name__ == '__main__':
     parser.add_argument('pythonfile', help ='The python file to be analyzed') 
     args = parser.parse_args()
     print(find_undefined_variables(args.pythonfile))
+
+# Observations:
+# Rounds taken to converge for each traversal are listed as follows.
+#
+# In our context, the order PO and RPO on reversed graph produce indeed is different.
+# The data structure stores the end note and it becomes the root node of the reversed graph.
+# During RPO traversal on reversed graph, I think starting with the end node (the new
+# root node) guarantees that the end node is the first one in the result, which is preferred
+# in backwards flow analysis.
+#
+# In practice, among the cases provided, PO and RPO on the reversed graph make no difference.
+# They both tend to start from the end, thus are more likely to take advantage of the LiveOut
+# set of the end node.
+#
+# In contrast, RPO starts from the root and it converges slower. The defalut order and RPO
+# makes a little difference. CFG.nodes() seems to always return the end node as the last in
+# the list.
+#
+# | Test | Default | Reverse Post-Order | Post-Order | Reverse Post-Order on Reversed Graph |
+# | :--: | :-----: | :----------------: | :--------: | :----------------------------------: |
+# | 0.py |    2    |         2          |     2      |                  2                   |
+# | 1.py |    5    |         5          |     2      |                  2                   |
+# | 2.py |    5    |         5          |     2      |                  2                   |
+# | 3.py |    6    |         6          |     3      |                  3                   |
+# | 4.py |    7    |         7          |     3      |                  3                   |
+# | 5.py |    6    |         6          |     3      |                  3                   |
+# | 6.py |    8    |         9          |     3      |                  3                   |
+# | 7.py |    8    |         8          |     3      |                  3                   |
