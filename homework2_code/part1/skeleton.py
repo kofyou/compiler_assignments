@@ -46,7 +46,7 @@ class ArithmeticInstr:
         self.op  = op
         self.op2 = op2
 
-    #
+    # if op is commutative, sort op1 and op2 based on their numbers
     def sort_operands(self):
         if self.op in ["+", "*"] and self.op1.get_number() > self.op2.get_number():
                 self.op1, self.op2 = self.op2, self.op1
@@ -55,6 +55,7 @@ class ArithmeticInstr:
     def pprint(self):
         return self.lhs.pprint() + " = " + self.op1.pprint() + " " + self.op + " " + self.op2.pprint()
 
+    # return the rhs as a string; used for mapping
     def pprint_rhs(self):
         return self.op1.pprint() + " " + self.op + " " + self.op2.pprint()
 
@@ -159,6 +160,10 @@ def do_numbering(input_block):
 # instructions
 
 # I have provided the start of an implementation for you
+
+# Reference: The code style of my implementations, including but not
+# limited to variable names and some structures like loops,
+# mimics what has already been provided.
 def replace_redundant_part1(input_block):
 
     # block to return
@@ -184,12 +189,16 @@ def replace_redundant_part1(input_block):
         # should simply add the original instruction to the return_block
 
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
+        # get the rhs string
         rhs_string = instr.pprint_rhs()
+        # try to get the previous cached lhs
         lhs_to_replace = rhs_map.get(rhs_string)
         if lhs_to_replace is not None:
+            # rhs can be replaced
             return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
             replaced_instructions += 1
         else:
+            # no cache yet. insert the pair to the dictionary
             rhs_map[rhs_string] = lhs
             return_block.add_instruction(instr)
         
@@ -233,6 +242,7 @@ def replace_redundant_part2(input_block):
         # should simply add the original instruction to the return_block
 
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
+        # sort the operands if possible. the orthers are the same
         instr.sort_operands()
         rhs_string = instr.pprint_rhs()
         lhs_to_replace = rhs_map.get(rhs_string)
@@ -296,6 +306,7 @@ def replace_redundant_part3(input_block):
         instr.sort_operands()
         rhs_string = instr.pprint_rhs()
         lhs_to_replace = rhs_map.get(rhs_string)
+        # check if the lhs to be used is still active
         if lhs_to_replace is not None and lhs_to_replace.get_number() == active_var_map[lhs_to_replace.get_name()]:
             return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
             # active_var_map[lhs.get_name()] = lhs.get_number()
@@ -356,7 +367,9 @@ def replace_redundant_part4(input_block):
         # you can create an assignment instruction with the constructor:        # new_instr = AssignmentInstr(lhs_variable, rhs_variable)       
         instr.sort_operands()
         rhs_string = instr.pprint_rhs()
+        # try to get the set of previous cached lhs
         lhs_set_to_replace = rhs_map.get(rhs_string, set())
+        # try to get an active substitute
         lhs_to_replace = next((x for x in lhs_set_to_replace if x.get_number() == active_var_map[x.get_name()]), None)
         if lhs_to_replace is not None:
             return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
