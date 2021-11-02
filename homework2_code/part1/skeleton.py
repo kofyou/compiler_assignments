@@ -309,13 +309,14 @@ def replace_redundant_part3(input_block):
         # check if the lhs to be used is still active
         if lhs_to_replace is not None and lhs_to_replace.get_number() == active_var_map[lhs_to_replace.get_name()]:
             return_block.add_instruction(AssignmentInstr(lhs, lhs_to_replace))
-            # active_var_map[lhs.get_name()] = lhs.get_number()
             replaced_instructions += 1
         else:
             rhs_map[rhs_string] = lhs
-            active_var_map[lhs.get_name()] = lhs.get_number()
             return_block.add_instruction(instr)
-        
+
+        # update or insert the active number of the variable
+        active_var_map[lhs.get_name()] = lhs.get_number()
+
     return return_block, replaced_instructions
 
 # Homework part4: Implement this function, which takes in a basic
@@ -376,6 +377,8 @@ def replace_redundant_part4(input_block):
             replaced_instructions += 1
         else:
             return_block.add_instruction(instr)
+
+        # update the set
         rhs_map[rhs_string].add(lhs)
         active_var_map[lhs.get_name()] = lhs.get_number()
 
