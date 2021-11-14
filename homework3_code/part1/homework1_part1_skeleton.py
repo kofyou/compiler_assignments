@@ -77,8 +77,8 @@ def homework_loop_sequential_source(chain_length, unroll_factor):
         chain.append("    float tmp" + str(j) + " = b[index" + str(j) + "];")
 
         # append the dependency chain
-        for i in range(0,chain_length):
-            chain.append("    tmp" + str(j) + " += "+ str(i+1)+".0f;")
+        for k in range(0, chain_length):
+            chain.append("    tmp" + str(j) + " += " + str(k+1) + ".0f;")
 
         # store the final value to memory
         chain.append("    b[index" + str(j) + "] = tmp" + str(j) + ";")
@@ -114,9 +114,9 @@ def homework_loop_interleaved_source(chain_length, unroll_factor):
         chain.append("    float tmp" + str(j) + " = b[index" + str(j) +"];")
 
     # append the dependency chain
-    for i in range(0,chain_length):
+    for k in range(0,chain_length):
         for j in range(0, unroll_factor):
-            chain.append("    tmp" + str(j) + " += "+ str(i+1)+".0f;")
+            chain.append("    tmp" + str(j) + " += " + str(k+1) + ".0f;")
 
     for j in range(0, unroll_factor):
         # store the final value to memory
