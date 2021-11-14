@@ -58,11 +58,29 @@ def homework_reduction_source(partitions):
     function = "void homework_reduction(reduce_type *a, int size) {"
     
     # implement me!
-    function_body = ""
+    # 
+    chunk_size ="size / " + str(partitions)
+    # loop header with partitioned loop size
+    main_loop = "  for (int i = 1; i < " + chunk_size + "; i++) {"
+
+    # init the dependency chain
+    eqs = []
+    for j in range(0, partitions):
+        # calculate original value index
+        eqs.append("    a[" + str(j) + " * " + chunk_size + "] += a[" + str(j) + " * " + chunk_size + " + i];")
+
+    # close the loop
+    loop_close = "  }"
+
+    #
+    cleanup_loop = "  for (int i = 1; i < " + str(partitions) + "; i++) {"
+
+    #
+    combination = "    a[0] += a[i * " + chunk_size + "];"
 
     # closing brace
     function_close = "}"
-    return "\n".join([function, function_body,function_close])
+    return "\n".join([function, main_loop, "\n".join(eqs), loop_close, cleanup_loop, combination, loop_close, function_close])
 
 # String for the main function, including timings and
 # reference checks.
