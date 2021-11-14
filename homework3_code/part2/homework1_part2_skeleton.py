@@ -73,14 +73,11 @@ def homework_reduction_source(partitions):
     loop_close = "  }"
 
     #
-    cleanup_loop = "  for (int i = 1; i < {}; i++) {{".format(partitions)
-
-    #
-    combination = "    a[0] += a[i * chunk_size];"
+    cleanup_loop = "  for (int i = 1; i < {}; i++) a[0] += a[i * chunk_size];".format(partitions)
 
     # closing brace
     function_close = "}"
-    return "\n".join([function, chunk_size, main_loop, "\n".join(eqs), loop_close, cleanup_loop, combination, loop_close, function_close])
+    return "\n".join([function, chunk_size, main_loop, "\n".join(eqs), loop_close, cleanup_loop, function_close])
 
 # String for the main function, including timings and
 # reference checks.
