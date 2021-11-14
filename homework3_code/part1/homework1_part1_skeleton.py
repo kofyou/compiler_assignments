@@ -63,10 +63,31 @@ def reference_loop_source(chain_length):
 # for example, try 1,2,4,8, etc.
 def homework_loop_sequential_source(chain_length, unroll_factor):
     function = "void homework_loop_sequential(float *b, int size) {"
-    #implement me!
-    function_body = ""
+
+    # implement me!
+    # loop header with folded loop size
+    loop = "  for (int i = 0; i < size / " + str(unroll_factor) + "; i++) {"
+
+    # init the dependency chain
+    chain = []
+    for j in range(0, unroll_factor):
+        # calculate original value index
+        chain.append("    int index" + str(j) + " = i * " + str(unroll_factor) + " + " + str(j) + ";")
+        # read the original value from memory
+        chain.append("    float tmp" + str(j) + " = b[index" + str(j) + "];")
+
+        # append the dependency chain
+        for i in range(0,chain_length):
+            chain.append("    tmp" + str(j) + " += "+ str(i+1)+".0f;")
+
+        # store the final value to memory
+        chain.append("    b[index" + str(j) + "] = tmp" + str(j) + ";")
+
+    # close the loop
+    loop_close = "  }"
+
     function_close = "}"
-    return "\n".join([function, function_body, function_close])
+    return "\n".join([function, loop, "\n".join(chain), loop_close, function_close])
 
 # Second homework function here! The specification for this
 # function is the same as the first homework function, except
@@ -77,10 +98,35 @@ def homework_loop_sequential_source(chain_length, unroll_factor):
 # the dependency chain also a power of two. 
 def homework_loop_interleaved_source(chain_length, unroll_factor):
     function = "void homework_loop_interleaved(float *b, int size) {"
-    #implement me!
-    function_body = ""    
+
+    # implement me!
+    # loop header with folded loop size
+    loop = "  for (int i = 0; i < size / " + str(unroll_factor) + "; i++) {"
+
+    # init the dependency chain
+    chain = []
+    for j in range(0, unroll_factor):
+        # calculate original value index
+        chain.append("    int index" + str(j) + " = i * " + str(unroll_factor) + " + " + str(j) + ";")
+
+    for j in range(0, unroll_factor):
+        # read the original value from memory
+        chain.append("    float tmp" + str(j) + " = b[index" + str(j) +"];")
+
+    # append the dependency chain
+    for i in range(0,chain_length):
+        for j in range(0, unroll_factor):
+            chain.append("    tmp" + str(j) + " += "+ str(i+1)+".0f;")
+
+    for j in range(0, unroll_factor):
+        # store the final value to memory
+        chain.append("    b[index" + str(j) + "] = tmp" + str(j) + ";")
+
+    # close the loop
+    loop_close = "  }"
+
     function_close = "}"
-    return "\n".join([function, function_body, function_close])
+    return "\n".join([function, loop, "\n".join(chain), loop_close, function_close])
 
 # String for the main function, including timings and
 # reference checks.
