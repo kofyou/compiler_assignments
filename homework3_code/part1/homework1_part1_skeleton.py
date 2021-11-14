@@ -66,22 +66,22 @@ def homework_loop_sequential_source(chain_length, unroll_factor):
 
     # implement me!
     # loop header with folded loop size
-    loop = "  for (int i = 0; i < size / " + str(unroll_factor) + "; i++) {"
+    loop = "  for (int i = 0; i < size / {}; i++) {{".format(unroll_factor)
 
     # init the dependency chain
     chain = []
     for j in range(0, unroll_factor):
         # calculate original value index
-        chain.append("    int index" + str(j) + " = i * " + str(unroll_factor) + " + " + str(j) + ";")
+        chain.append("    int index{} = i * {} + {};".format(j, unroll_factor, j))
         # read the original value from memory
-        chain.append("    float tmp" + str(j) + " = b[index" + str(j) + "];")
+        chain.append("    float tmp{} = b[index{}];".format(j, j))
 
         # append the dependency chain
         for k in range(0, chain_length):
-            chain.append("    tmp" + str(j) + " += " + str(k+1) + ".0f;")
+            chain.append("    tmp{} += {}.0f;".format(j, k+1))
 
         # store the final value to memory
-        chain.append("    b[index" + str(j) + "] = tmp" + str(j) + ";")
+        chain.append("    b[index{}] = tmp{};".format(j, j))
 
     # close the loop
     loop_close = "  }"
@@ -101,26 +101,26 @@ def homework_loop_interleaved_source(chain_length, unroll_factor):
 
     # implement me!
     # loop header with folded loop size
-    loop = "  for (int i = 0; i < size / " + str(unroll_factor) + "; i++) {"
+    loop = "  for (int i = 0; i < size / {}; i++) {{".format(unroll_factor)
 
     # init the dependency chain
     chain = []
     for j in range(0, unroll_factor):
         # calculate original value index
-        chain.append("    int index" + str(j) + " = i * " + str(unroll_factor) + " + " + str(j) + ";")
+        chain.append("    int index{} = i * {} + {};".format(j, unroll_factor, j))
 
     for j in range(0, unroll_factor):
         # read the original value from memory
-        chain.append("    float tmp" + str(j) + " = b[index" + str(j) +"];")
+        chain.append("    float tmp{} = b[index{}];".format(j, j))
 
     # append the dependency chain
     for k in range(0,chain_length):
         for j in range(0, unroll_factor):
-            chain.append("    tmp" + str(j) + " += " + str(k+1) + ".0f;")
+            chain.append("    tmp{} += {}.0f;".format(j, k+1))
 
     for j in range(0, unroll_factor):
         # store the final value to memory
-        chain.append("    b[index" + str(j) + "] = tmp" + str(j) + ";")
+        chain.append("    b[index{}] = tmp{};".format(j, j))
 
     # close the loop
     loop_close = "  }"

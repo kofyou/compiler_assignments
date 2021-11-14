@@ -59,7 +59,7 @@ def homework_reduction_source(partitions):
     
     # implement me!
     # 
-    chunk_size ="  int chunk_size = size / " + str(partitions) + ";"
+    chunk_size ="  int chunk_size = size / {};".format(partitions)
     # loop header with partitioned loop size
     main_loop = "  for (int i = 1; i < chunk_size; i++) {"
 
@@ -67,13 +67,13 @@ def homework_reduction_source(partitions):
     eqs = []
     for j in range(0, partitions):
         # calculate original value index
-        eqs.append("    a[" + str(j) + " * chunk_size] += a[" + str(j) + " * chunk_size + i];")
+        eqs.append("    a[{} * chunk_size] += a[{} * chunk_size + i];".format(j, j))
 
     # close the loop
     loop_close = "  }"
 
     #
-    cleanup_loop = "  for (int i = 1; i < " + str(partitions) + "; i++) {"
+    cleanup_loop = "  for (int i = 1; i < {}; i++) {{".format(partitions)
 
     #
     combination = "    a[0] += a[i * chunk_size];"
