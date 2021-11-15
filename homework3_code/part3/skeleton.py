@@ -183,8 +183,20 @@ def check_parallel_safety(for_loops, read_index, write_index):
     variables = []
 
     # You can iterate through the loops like so
-    for i,f in enumerate(for_loops):        
-        pass
+    for i,f in enumerate(for_loops):
+        loop_var = f.get_variable_name()
+        lower_bound = f.get_lower_bound()
+        upper_bound = f.get_upper_bound()
+
+        variables.append(loop_var)
+
+        reader_var = reader_vars[loop_var] = z3.Int(loop_var + "0")
+        smt_solver.add(reader_var >= lower_bound, reader_var < upper_bound)
+        writer_var = writer_vars[loop_var] = z3.Int(loop_var + "1")
+        smt_solver.add(writer_var >= lower_bound, writer_var < upper_bound)
+
+        if i == 0:
+            smt_solver.add(reader_var != writer_var)
 
     # My implementation created strings of equations using symbolic
     # z3 variables. I then used "eval" on these strings to create
@@ -199,7 +211,21 @@ def check_parallel_safety(for_loops, read_index, write_index):
     # If the forula is sat, then there is some instance of loop variables
     # where the reader thread and writer thread can conflict, and thus it
     # is not safe to parallelize.    
-    return False
+    for loop_var in variables:
+        read_index = read_index.replace(loop_var, "reader_vars[\"{}\"]".format(loop_var))
+        write_index = write_index.replace(loop_var, "writer_vars[\"{}\"]".format(loop_var))
+        print(read_index, write_index, "!")
+
+    print(read_index + "==" + write_index, "~")
+    print(eval(read_index + "==" + write_index), "?")
+    smt_solver.add(eval(read_index + "==" + write_index))
+
+    print(smt_solver)
+    if smt_solver.check() == z3.sat:
+        print(smt_solver.model())
+        return False
+    else:
+        return True
 
 # Top level function. Given a python file name, it parses the file,
 # and analyzes it to determine if the top level for loop can be done
