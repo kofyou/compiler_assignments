@@ -193,32 +193,55 @@ def check_parallel_safety(for_loops, read_index, write_index):
 
     # You can iterate through the loops like so
     for i,f in enumerate(for_loops):
+        # get loop elements
         loop_var = f.get_variable_name()
         lower_bound = f.get_lower_bound()
         upper_bound = f.get_upper_bound()
 
+        # collect all loop vriables
         variables.append(loop_var)
+        
+        # create the reader loop variable for z3
+        reader_var = z3.Int(loop_var + "0")
+        # map loop variable name to reader loop variable
+        # e.g. reader_vars["i"] = z3.Int("i0")
+        reader_vars[loop_var] = reader_var
+        # add constrains for the reader loop variable
+        # if bounds are vriables, use the dict to get previous reader loop variables 
+        smt_solver.add(reader_var >= reader_vars.get(lower_bound, lower_bound))
+        smt_solver.add(reader_var < reader_vars.get(upper_bound, upper_bound))
 
-        reader_var = reader_vars[loop_var] = z3.Int(loop_var + "0")
-        smt_solver.add(reader_var >= lower_bound, reader_var < upper_bound)
-        writer_var = writer_vars[loop_var] = z3.Int(loop_var + "1")
-        smt_solver.add(writer_var >= lower_bound, writer_var < upper_bound)
+        # create the writer loop variable for z3
+        writer_var = z3.Int(loop_var + "1")
+        # map loop variable name to writer loop variable
+        # e.g. writer_vars['i'] = z3.Int("i1")
+        writer_vars[loop_var] = writer_var
+        # add constrains for the writer loop variable
+        # if bounds are vriables, use the dict to get previous reader loop variables 
+        smt_solver.add(writer_var >= writer_vars.get(lower_bound, lower_bound))
+        smt_solver.add(writer_var < writer_vars.get(upper_bound, upper_bound))
 
+        # the outest reader and writer loop variable have different values 
         if i == 0:
             smt_solver.add(reader_var != writer_var)
     
+    # replace all variable names in index strings with z3 variables
     for loop_var in variables:
+        # read_index uses reader loop variables
         read_index = read_index.replace(loop_var, "reader_vars[\"{}\"]".format(loop_var))
+        # write_index uses writer loop variables
         write_index = write_index.replace(loop_var, "writer_vars[\"{}\"]".format(loop_var))
 
+    # assume we have read-write conflicts
     smt_solver.add(eval(read_index + " == " + write_index))
-    
+
     # After all the constraints are added, you check the formula
     # If the forula is sat, then there is some instance of loop variables
     # where the reader thread and writer thread can conflict, and thus it
     # is not safe to parallelize.    
 
     print(smt_solver)
+    # if read-write conflicts are satisfiable, parallelism is not safe
     if smt_solver.check() == z3.sat:
         print(smt_solver.model())
         return False
