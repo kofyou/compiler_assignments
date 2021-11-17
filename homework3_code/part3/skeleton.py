@@ -182,6 +182,15 @@ def check_parallel_safety(for_loops, read_index, write_index):
     reader_vars = {}
     variables = []
 
+    # My implementation created strings of equations using symbolic
+    # z3 variables. I then used "eval" on these strings to create
+    # z3 constraints.
+
+    # For example, to constrain ix and iy not to be equal, I did
+    # something like this:
+    # eq = "ix != iy"
+    # smt_solver.add(eval(eq))
+
     # You can iterate through the loops like so
     for i,f in enumerate(for_loops):
         loop_var = f.get_variable_name()
@@ -197,28 +206,17 @@ def check_parallel_safety(for_loops, read_index, write_index):
 
         if i == 0:
             smt_solver.add(reader_var != writer_var)
+    
+    for loop_var in variables:
+        read_index = read_index.replace(loop_var, "reader_vars[\"{}\"]".format(loop_var))
+        write_index = write_index.replace(loop_var, "writer_vars[\"{}\"]".format(loop_var))
 
-    # My implementation created strings of equations using symbolic
-    # z3 variables. I then used "eval" on these strings to create
-    # z3 constraints.
-
-    # For example, to constrain ix and iy not to be equal, I did
-    # something like this:
-    # eq = "ix != iy"
-    # smt_solver.add(eval(eq))
+    smt_solver.add(eval(read_index + " == " + write_index))
     
     # After all the constraints are added, you check the formula
     # If the forula is sat, then there is some instance of loop variables
     # where the reader thread and writer thread can conflict, and thus it
     # is not safe to parallelize.    
-    for loop_var in variables:
-        read_index = read_index.replace(loop_var, "reader_vars[\"{}\"]".format(loop_var))
-        write_index = write_index.replace(loop_var, "writer_vars[\"{}\"]".format(loop_var))
-        print(read_index, write_index, "!")
-
-    print(read_index + "==" + write_index, "~")
-    print(eval(read_index + "==" + write_index), "?")
-    smt_solver.add(eval(read_index + "==" + write_index))
 
     print(smt_solver)
     if smt_solver.check() == z3.sat:
