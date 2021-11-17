@@ -175,6 +175,10 @@ def get_loops_and_index_strings(top_node):
 #
 # write_index: same as read_index, except for with the index for the write
 # access.
+
+# Reference: The code style of my implementations, including but not
+# limited to variable names and some structures like loops,
+# mimics what has already been provided.
 def check_parallel_safety(for_loops, read_index, write_index):
 
     smt_solver = z3.Solver()

@@ -53,6 +53,10 @@ def reference_reduction_source():
 # should pass the assertion in the code.
 #
 # You can assume partition is less than size.
+
+# Reference: The code style of my implementations, including but not
+# limited to variable names and some structures like loops,
+# mimics what has already been provided.
 def homework_reduction_source(partitions):
     # header
     function = "void homework_reduction(reduce_type *a, int size) {"

@@ -61,6 +61,10 @@ def reference_loop_source(chain_length):
 # You can gain confidence that implemented this correctly by executing
 # skeleton.py with several power-of-two options for the unroll factor
 # for example, try 1,2,4,8, etc.
+
+# Reference: The code style of my implementations, including but not
+# limited to variable names and some structures like loops,
+# mimics what has already been provided.
 def homework_loop_sequential_source(chain_length, unroll_factor):
     function = "void homework_loop_sequential(float *b, int size) {"
 
