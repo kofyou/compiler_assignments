@@ -232,7 +232,7 @@ def check_parallel_safety(for_loops, read_index, write_index):
         # write_index uses writer loop variables
         write_index = write_index.replace(loop_var, "writer_vars[\"{}\"]".format(loop_var))
 
-    # assume we have read-write conflicts
+    # will we have read-write conflicts?
     smt_solver.add(eval(read_index + " == " + write_index))
 
     # After all the constraints are added, you check the formula

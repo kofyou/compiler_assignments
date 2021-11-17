@@ -65,10 +65,10 @@ def homework_loop_sequential_source(chain_length, unroll_factor):
     function = "void homework_loop_sequential(float *b, int size) {"
 
     # implement me!
-    # loop header with folded loop size
+    # loop header with unrolled loop size
     loop = "  for (int i = 0; i < size / {}; i++) {{".format(unroll_factor)
 
-    # init the dependency chain
+    # create the dependency chain
     chain = []
     for j in range(0, unroll_factor):
         # calculate original value index
@@ -100,26 +100,26 @@ def homework_loop_interleaved_source(chain_length, unroll_factor):
     function = "void homework_loop_interleaved(float *b, int size) {"
 
     # implement me!
-    # loop header with folded loop size
+    # loop header with unrolled loop size
     loop = "  for (int i = 0; i < size / {}; i++) {{".format(unroll_factor)
 
     # init the dependency chain
     chain = []
+    # for the entire group, calculate original value index
     for j in range(0, unroll_factor):
-        # calculate original value index
         chain.append("    int index{} = i * {} + {};".format(j, unroll_factor, j))
 
+    # for the entire group, read the original value from memory
     for j in range(0, unroll_factor):
-        # read the original value from memory
         chain.append("    float tmp{} = b[index{}];".format(j, j))
 
-    # append the dependency chain
+    # for the entire group, append the dependency chain
     for k in range(0,chain_length):
         for j in range(0, unroll_factor):
             chain.append("    tmp{} += {}.0f;".format(j, k+1))
 
+    # for the entire group, store the final value to memory
     for j in range(0, unroll_factor):
-        # store the final value to memory
         chain.append("    b[index{}] = tmp{};".format(j, j))
 
     # close the loop
@@ -175,6 +175,13 @@ int main() {
   cout << "speedups:" << endl;
   cout << "sequential speedup over reference: " << ref_seconds / sequential_seconds << endl << endl;
   cout << "interleaved speedup over reference: " << ref_seconds / interleaved_seconds << endl << endl;
+
+  // ensure the results are the same
+  for (int i = 0; i < SIZE; i++) {
+    assert(a[i] == b[i]);
+    assert(a[i] == c[i]);
+  }
+  cout << "results are the same!" << endl;
 
   return 0;
 }

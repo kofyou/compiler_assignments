@@ -58,21 +58,22 @@ def homework_reduction_source(partitions):
     function = "void homework_reduction(reduce_type *a, int size) {"
     
     # implement me!
-    # 
+    # partitions: how many chunks in total
+    # chunk_size: number of additions in a single chunk
     chunk_size ="  int chunk_size = size / {};".format(partitions)
-    # loop header with partitioned loop size
+    # loop header with chunk_size
     main_loop = "  for (int i = 1; i < chunk_size; i++) {"
 
-    # init the dependency chain
+    # create the dependency chain
     eqs = []
+    # at iteration i, for each chunk, add the ith element to the chunk header
     for j in range(0, partitions):
-        # calculate original value index
         eqs.append("    a[{} * chunk_size] += a[{} * chunk_size + i];".format(j, j))
 
     # close the loop
     loop_close = "  }"
 
-    #
+    # add all chunk headers to the first
     cleanup_loop = "  for (int i = 1; i < {}; i++) a[0] += a[i * chunk_size];".format(partitions)
 
     # closing brace
@@ -112,6 +113,10 @@ int main() {
   cout << "new loop time: " << new_seconds << endl; 
   cout << "reference loop time: " << ref_seconds << endl; 
   cout << "speedup: " << ref_seconds / new_seconds << endl << endl;
+
+  // ensure the results are the same
+  assert(a[0] == b[0]);
+  cout << "results are the same!" << endl;
 
   return 0;
 }
