@@ -180,13 +180,6 @@ int main() {
   cout << "sequential speedup over reference: " << ref_seconds / sequential_seconds << endl << endl;
   cout << "interleaved speedup over reference: " << ref_seconds / interleaved_seconds << endl << endl;
 
-  // ensure the results are the same
-  for (int i = 0; i < SIZE; i++) {
-    assert(a[i] == b[i]);
-    assert(a[i] == c[i]);
-  }
-  cout << "results are the same!" << endl;
-
   return 0;
 }
 """

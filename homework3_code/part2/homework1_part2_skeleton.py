@@ -118,10 +118,6 @@ int main() {
   cout << "reference loop time: " << ref_seconds << endl; 
   cout << "speedup: " << ref_seconds / new_seconds << endl << endl;
 
-  // ensure the results are the same
-  assert(a[0] == b[0]);
-  cout << "results are the same!" << endl;
-
   return 0;
 }
 """
